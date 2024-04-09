@@ -1984,13 +1984,21 @@ if __name__ == "__main__":
         # {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (0, 3), 5: (0, 4), 6: (0, 5), 7: (1, 0), 8: (1, 1), 9: (1, 2), 10: (1, 3), 11: (1, 4), 12: (1, 5)}
 
         print(len_entries)
-        #[5, 3, 4, 5]
+        #len_entries == [5, 3, 4, 5]
+        # offset_global == [[[0, 2], [0, 1]], [[0, 1], [0, 3]]]
+        entoffset = []
 
-        reduced_index = []
-        # 必須先找到 offset 對應的 entries
+        for i in range(len(offset_global)):
+            temp_result = []
+            for j in range(len(offset_global[i])):
+                temp_entry = offset_global[i][j] + [len_entries.pop(0)]
+                temp_result.append(temp_entry)
+            entoffset.append(temp_result)
+        
+        print(entoffset)
 
-
-
+        #[[[0, 2, 5], [0, 1, 3]], [[0, 1, 4], [0, 3, 5]]]
+        # 5 entries wiht offset 0, 2 ......
 
 
 
