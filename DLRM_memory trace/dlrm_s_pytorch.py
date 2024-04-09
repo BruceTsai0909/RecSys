@@ -1995,7 +1995,7 @@ if __name__ == "__main__":
                 memory_access_pair.append((int(embedding_table_gather_reduce_access[i][1][j]), 'W'))
             memory_access_pair.append("STOP")
 
-        
+        # tesst
         print('memory_access_pair', memory_access_pair)
         total_memory_index_needed = len(memory_index)
 
