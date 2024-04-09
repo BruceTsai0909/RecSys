@@ -1959,9 +1959,11 @@ if __name__ == "__main__":
         batch_num = len(offset_global)
         print('batch_num', batch_num)
         batched_table_access = []
+        len_entries = []
         for b in range(batch_num):
             batched_table_access.append([b])
         for i in range(len(embedding_table_gather_reduce_access)):
+            len_entries.append(len(embedding_table_gather_reduce_access[i][1]))
             for j in embedding_table_gather_reduce_access[i][1]:
                 batched_table_access[i // batch_num].append((i, j))
         batched_table_access_list = []
@@ -1972,34 +1974,27 @@ if __name__ == "__main__":
 
         print('batched_table_access_list', batched_table_access_list)
         # batched_table_access_list == [[nth batch], [(kth table, kth entry), (kth table, kth entry), (kth table, kth entry)]]
+        # [[[0], [(0, 2), (0, 4), (0, 0), (0, 2), (0, 4), (1, 1), (1, 3), (1, 4)]], [[1], [(2, 2), (2, 3), (2, 4), (2, 5), (3, 1), (3, 2), (3, 4), (3, 2), (3, 5)]]]
+        emb_table_pair = []
+        emb_table_pair = [(i, j) for i, size in enumerate(table_size_list) for j in range(size)]
+        print(emb_table_pair)
+        # [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]
+        mapped_dict = {idx+1: pair for idx, pair in enumerate(emb_table_pair)}
+        print(mapped_dict)
+        # {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (0, 3), 5: (0, 4), 6: (0, 5), 7: (1, 0), 8: (1, 1), 9: (1, 2), 10: (1, 3), 11: (1, 4), 12: (1, 5)}
+
+        print(len_entries)
+        #[5, 3, 4, 5]
+
+        reduced_index = []
+        # 必須先找到 offset 對應的 entries
 
 
-        # print("memory_index", memory_index)
-        shot_memory_index_last = memory_index[-1]
-        shot_memory_index_len_1 = len(memory_index)
-        gradient_start_index = shot_memory_index_len_1 + size_of_the_reduced_embedding_vector_global
 
-        for i in range(1, size_of_the_reduced_embedding_vector_global * 2 + 1):
-            memory_index.append(shot_memory_index_last + i)
-        
-        print("memory_index", memory_index)
-        memory_access_pair = []
-        for i in range(len(embedding_table_gather_reduce_access)):
-            for j in range(len(embedding_table_gather_reduce_access[i][1])):
-                memory_access_pair.append((int(embedding_table_gather_reduce_access[i][1][j]), 'R'))
-                memory_access_pair.append((memory_index[shot_memory_index_len_1 + i], 'R'))
-                memory_access_pair.append((memory_index[shot_memory_index_len_1 + i], 'W'))
-            for j in range(len(embedding_table_gather_reduce_access[i][1])):
-                memory_access_pair.append((memory_index[gradient_start_index + i], 'R'))
-                memory_access_pair.append((int(embedding_table_gather_reduce_access[i][1][j]), 'R'))
-                memory_access_pair.append((int(embedding_table_gather_reduce_access[i][1][j]), 'W'))
-            memory_access_pair.append("STOP")
 
-        # tesst
-        print('memory_access_pair', memory_access_pair)
-        total_memory_index_needed = len(memory_index)
 
-        return total_memory_index_needed, memory_access_pair
+
+        return 0
 
 
     def training_trace_simple(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global):
@@ -2064,7 +2059,7 @@ if __name__ == "__main__":
                     file.write(f"{item}\n")
 
 
-    total_memory_index_needed, memory_access_pair = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
+    kkkkk = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
     # total_memory_index_needed, memory_access_pair = training_trace_simple(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
