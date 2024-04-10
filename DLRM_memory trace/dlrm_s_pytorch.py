@@ -2072,7 +2072,7 @@ if __name__ == "__main__":
                 mem_trace[idx].append((grad_to_duplicate_access[idx][i], 'R'))
                 mem_trace[idx].append((duplicated_grad_addr[idx][i], 'R'))
                 mem_trace[idx].append((duplicated_grad_addr[idx][i], 'W'))
-        print('mem_trace: ', mem_trace)
+        # print('mem_trace: ', mem_trace)
         # coalescing gradients
         # gather_op_access == [[2, 4, 0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 8, 11]]
 
@@ -2095,9 +2095,30 @@ if __name__ == "__main__":
         
         print('coalesce_dst_addr:', coalesce_dst_addr)
         # coalesce_dst_addr: [[29, 30, 28, 29, 30, 31, 32, 33], [29, 30, 31, 32, 33, 34, 35, 34, 36]]
+        # duplicated_grad_addr:  [[20, 21, 22, 23, 24, 25, 26, 27], [20, 21, 22, 23, 24, 25, 26, 27, 28]]
+        
+        #coalesce operation
+        for idx, access in enumerate(duplicated_grad_addr):
+            for i in range(len(access)):
+                mem_trace[idx].append((duplicated_grad_addr[idx][i], 'R'))
+                mem_trace[idx].append((coalesce_dst_addr[idx][i], 'R'))
+                mem_trace[idx].append((coalesce_dst_addr[idx][i], 'W'))
+        # print('mem_trace: ', mem_trace)
 
-
-
+        write_back_to_table = [sorted(set(lst)) for lst in gather_op_access]
+        print('write_back_to_table: ', write_back_to_table)
+        # write_back_to_table:  [[0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 11]]
+        coalesce_grad_ready_to_write_back = [sorted(set(lst)) for lst in coalesce_dst_addr]
+        print('coalesce_grad_ready_to_write_back: ', coalesce_grad_ready_to_write_back)
+        # coalesce_grad_ready_to_write_back:  [[28, 29, 30, 31, 32, 33], [29, 30, 31, 32, 33, 34, 35, 36]]
+        
+        #update emb table with coalesced gradients
+        for idx, access in enumerate(write_back_to_table):
+            for i in range(len(access)):
+                mem_trace[idx].append((coalesce_grad_ready_to_write_back[idx][i], 'R'))
+                mem_trace[idx].append((write_back_to_table[idx][i], 'R'))
+                mem_trace[idx].append((write_back_to_table[idx][i], 'W'))
+        print('mem_trace: ', mem_trace)
 
 
         return 0
