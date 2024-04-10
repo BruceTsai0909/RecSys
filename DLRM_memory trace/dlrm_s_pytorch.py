@@ -2123,34 +2123,25 @@ if __name__ == "__main__":
         memory_needed = [max(lst) for lst in coalesce_dst_addr]
         print('memory_needed: ' , memory_needed)
 
-        return 0
+        return mem_trace, memory_needed
 
 
 
-    def memory_mapping(memory_index_needed, trace_pair, embedding_table_dimension_global):
+    def memory_mapping(memory_trace, memory_needed, embedding_table_dimension_global):
         base_address = 0x10000000  # base
         address_shift_per_embedding_vector = 1 * embedding_table_dimension_global
 
-        # all address
-        all_address = [hex(base_address + address_shift_per_embedding_vector * i) for i in range(memory_index_needed)]
-        print("all_address", all_address)
-        # print("len_all_address", len(all_address))
-
-        # trace_pair 
-        address_and_action_pair = []
-        for item in trace_pair:
-            if item == 'STOP':
-                address_and_action_pair.append('STOP')
-                continue
-
-            index, action = item  
-            if index >= len(all_address):
-                address_and_action_pair.append('STOP')
-            else:
+        address_and_action_pair = [[] for _ in range(len(memory_trace))]
+        for idx, trace in enumerate(memory_trace):
+            all_address = [hex(base_address + address_shift_per_embedding_vector * i) for i in range(memory_needed[idx] + 1)]
+            print("all_address", all_address)
+            for item in trace:
+                index, action = item
                 address = all_address[index]
-                address_and_action_pair.append((address, action))
-
+                address_and_action_pair[idx].append((address, action))
+            address_and_action_pair[idx].append("STOP")
         print("address_and_action_pair", address_and_action_pair)
+
         return address_and_action_pair
 
 
@@ -2161,12 +2152,17 @@ if __name__ == "__main__":
         with open(output_file_path, 'w') as file:
             for item in output_list:
                 if isinstance(item, tuple):  
-                    file.write(f"{item[0]} {item[1]}\n")
+                    if item[1].endswith('W'):  # Check if access type ends with 'W'
+                        file.write(f"{item[0]}{item[1]}\n")  # Write without space
+                    else:
+                        file.write(f"{item[0]} {item[1]}\n")  # Write with space
                 else:  
                     file.write(f"{item}\n")
 
 
-    temp = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
-    # address_and_action_pair__simple_training = memory_mapping(total_memory_index_needed, memory_access_pair, embedding_table_dimension_global)
-    # write_output_to_txt(address_and_action_pair__simple_training, '001')
+
+    memory_trace, memory_needed = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
+
+    address_and_action_pair = memory_mapping(memory_trace, memory_needed, embedding_table_dimension_global)
+    write_output_to_txt(address_and_action_pair, '001')
