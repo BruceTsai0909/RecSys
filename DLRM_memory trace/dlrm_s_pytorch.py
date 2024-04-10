@@ -2118,7 +2118,7 @@ if __name__ == "__main__":
                 mem_trace[idx].append((coalesce_grad_ready_to_write_back[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'W'))
-        print('mem_trace: ', mem_trace)
+        # print('mem_trace: ', mem_trace)
 
         memory_needed = [max(lst) for lst in coalesce_dst_addr]
         print('memory_needed: ' , memory_needed)
@@ -2140,7 +2140,7 @@ if __name__ == "__main__":
                 address = all_address[index]
                 address_and_action_pair[idx].append((address, action))
             # address_and_action_pair[idx].append("STOP")
-        print("address_and_action_pair", address_and_action_pair)
+        # print("address_and_action_pair", address_and_action_pair)
 
         return address_and_action_pair
 
@@ -2164,5 +2164,5 @@ if __name__ == "__main__":
     memory_trace, memory_needed = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
     address_and_action_pair = memory_mapping(memory_trace, memory_needed, embedding_table_dimension_global)
-    
+
     write_output_to_txt(address_and_action_pair, '001')
