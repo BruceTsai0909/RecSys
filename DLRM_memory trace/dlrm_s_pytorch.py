@@ -2042,7 +2042,19 @@ if __name__ == "__main__":
                 mem_trace[idx].append((gather_op_access[idx][i], 'R'))
                 mem_trace[idx].append((entry_to_bag_extend_to_mem_addr[idx][i], 'R'))
                 mem_trace[idx].append((entry_to_bag_extend_to_mem_addr[idx][i], 'W'))
+        # print('mem_trace: ', mem_trace) # for inference gather reduce ok
+
+        # size_of_the_reduced_embedding_vector_global == 4 for example
+        gradients_mem_addr = []
+        # gradients write back
+        for i in range(size_of_the_reduced_embedding_vector_global):
+            gradients_mem_addr.append(i + len(mapped_dict) + size_of_the_reduced_embedding_vector_global)
+        print('gradients_mem_addr: ', gradients_mem_addr)
+        for trace in mem_trace:
+            for grad in gradients_mem_addr:
+                trace.append((grad, 'W'))
         print('mem_trace: ', mem_trace)
+        # gradients write back done
 
 
 
