@@ -2073,6 +2073,29 @@ if __name__ == "__main__":
                 mem_trace[idx].append((duplicated_grad_addr[idx][i], 'R'))
                 mem_trace[idx].append((duplicated_grad_addr[idx][i], 'W'))
         print('mem_trace: ', mem_trace)
+        # coalescing gradients
+        # gather_op_access == [[2, 4, 0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 8, 11]]
+
+        coalesce_dst = []
+        for lst in gather_op_access:
+            # Find the unique elements and sort them
+            unique_sorted = sorted(set(lst))
+            # Create a mapping from element to its rank
+            mapping = {value: index for index, value in enumerate(unique_sorted)}
+            # Remap the values in the list according to the mapping
+            remapped_list = [mapping[value] for value in lst]
+            coalesce_dst.append(remapped_list)
+        print('coalesce_dst: ', coalesce_dst)
+        # coalesce_dst:  [[1, 2, 0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5, 6, 5, 7]]
+
+        coalesce_dst_addr = []
+        for idx, lst in enumerate(coalesce_dst):
+            max_addr = max(duplicated_grad_addr[idx])
+            coalesce_dst_addr.append([num + max_addr + 1 for num in lst])
+        
+        print('coalesce_dst_addr:', coalesce_dst_addr)
+        # coalesce_dst_addr: [[29, 30, 28, 29, 30, 31, 32, 33], [29, 30, 31, 32, 33, 34, 35, 34, 36]]
+
 
 
 
