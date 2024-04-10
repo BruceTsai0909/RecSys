@@ -2053,7 +2053,7 @@ if __name__ == "__main__":
         for trace in mem_trace:
             for grad in gradients_mem_addr:
                 trace.append((grad, 'W'))
-        print('mem_trace: ', mem_trace)
+        # print('mem_trace: ', mem_trace)
         # gradients write back done
         duplicated_grad_addr = [[] for _ in range(batch_num)]
         for idx, access in enumerate(gather_op_access):
@@ -2065,6 +2065,14 @@ if __name__ == "__main__":
         grad_to_duplicate_access = [[val + min(gradients_mem_addr) for val in sublist] for sublist in entry_to_bag]
         print('grad_to_duplicate_access: ', grad_to_duplicate_access)
         # grad_to_duplicate_access:  [[16, 16, 17, 17, 17, 18, 19, 19], [16, 17, 17, 17, 18, 18, 18, 19, 19]]
+
+        # duplicate gradients operation
+        for idx, access in enumerate(grad_to_duplicate_access):
+            for i in range(len(access)):
+                mem_trace[idx].append((grad_to_duplicate_access[idx][i], 'R'))
+                mem_trace[idx].append((duplicated_grad_addr[idx][i], 'R'))
+                mem_trace[idx].append((duplicated_grad_addr[idx][i], 'W'))
+        print('mem_trace: ', mem_trace)
 
 
 
