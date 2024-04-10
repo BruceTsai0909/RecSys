@@ -2030,9 +2030,19 @@ if __name__ == "__main__":
                         break  
             gather_op_access[idx].extend(mapped_indexes)
 
-        print('gather_op_access', gather_op_access)
+        print('gather_op_access: ', gather_op_access)
         # gather_op_access == [[2, 4, 0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 8, 11]]
-
+        entry_to_bag_extend_to_mem_addr = [[val + len(mapped_dict) for val in sublist] for sublist in entry_to_bag]
+        print('entry_to_bag_extend_to_mem_addr: ', entry_to_bag_extend_to_mem_addr)
+        # entry_to_bag_extend_to_mem_addr == [[12, 12, 13, 13, 13, 14, 15, 15], [12, 13, 13, 13, 14, 14, 14, 15, 15]]
+        mem_trace = [[] for _ in range(batch_num)]
+        # for inference gather reduce
+        for idx, access in enumerate(gather_op_access):
+            for i in range(len(access)):
+                mem_trace[idx].append((gather_op_access[idx][i], 'R'))
+                mem_trace[idx].append((entry_to_bag_extend_to_mem_addr[idx][i], 'R'))
+                mem_trace[idx].append((entry_to_bag_extend_to_mem_addr[idx][i], 'W'))
+        print('mem_trace: ', mem_trace)
 
 
 
