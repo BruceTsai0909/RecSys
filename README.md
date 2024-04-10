@@ -9,7 +9,7 @@ $ python dlrm_s_pytorch.py --mini-batch-size=2 --data-size=4 --arch-embedding-si
 This command signifies using 2 tables with dimensions of 6 each, conducting 2 iterations, and using 2 mini-batches per iteration.
 
 
-Output Format:
+Output Format(the output file will be saves as 001.txt)
 0x10000004 R
 0x10000018 R
 0x10000018 W
