@@ -1965,7 +1965,8 @@ if __name__ == "__main__":
         for i in range(len(embedding_table_gather_reduce_access)):
             len_entries.append(len(embedding_table_gather_reduce_access[i][1]))
             for j in embedding_table_gather_reduce_access[i][1]:
-                batched_table_access[i // batch_num].append((i, j))
+                batched_table_access[i // batch_num].append((embedding_table_gather_reduce_access[i][0], j))
+        print('batched_table_access', batched_table_access)
         batched_table_access_list = []
         # Modify the format
         for sublist in batched_table_access:
@@ -1979,9 +1980,9 @@ if __name__ == "__main__":
         emb_table_pair = [(i, j) for i, size in enumerate(table_size_list) for j in range(size)]
         print(emb_table_pair)
         # [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]
-        mapped_dict = {idx+1: pair for idx, pair in enumerate(emb_table_pair)}
+        mapped_dict = {idx: pair for idx, pair in enumerate(emb_table_pair)}
         print(mapped_dict)
-        # {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (0, 3), 5: (0, 4), 6: (0, 5), 7: (1, 0), 8: (1, 1), 9: (1, 2), 10: (1, 3), 11: (1, 4), 12: (1, 5)}
+        # mapped_dict == {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3), 4: (0, 4), 5: (0, 5), 6: (1, 0), 7: (1, 1), 8: (1, 2), 9: (1, 3), 10: (1, 4), 11: (1, 5)}
 
         print(len_entries)
         #len_entries == [5, 3, 4, 5]
@@ -1997,8 +1998,41 @@ if __name__ == "__main__":
         
         print(entoffset)
 
-        #[[[0, 2, 5], [0, 1, 3]], [[0, 1, 4], [0, 3, 5]]]
+        #entoffset == [[[0, 2, 5], [0, 1, 3]], [[0, 1, 4], [0, 3, 5]]]
         # 5 entries wiht offset 0, 2 ......
+        # [[0,0,1,1,1,2,3,3], [0,1,1,1,2,2,2,3,3]]
+        entry_to_bag = [[] for _ in range(batch_num)]
+        for idx, group in enumerate(entoffset):
+            counter = 0
+            curr = 1
+            for i in range(len(group)):
+                for j in range(group[i][-1]):
+                    if (curr < len(group[i])) and (len(group[i]) != 1):
+                        if j >= group[i][curr]:
+                            counter += 1
+                            curr += 1
+                    entry_to_bag[idx].append(counter)
+                counter += 1
+                curr = 1
+                    
+        # res == [[0, 0, 1, 1, 1, 2, 3, 3], [0, 1, 1, 1, 2, 2, 2, 3, 3]] # which entries belongs to which bag(res) (this example is two iteration)
+        print('entry_to_bag: ', entry_to_bag)
+
+        gather_op_access = [[] for _ in range(batch_num)]
+        reverse_mapped_dict = {v: k for k, v in mapped_dict.items()}
+        for idx, (_, accesses) in enumerate(batched_table_access_list):
+            mapped_indexes = []
+            for access in accesses:
+                for k, v in mapped_dict.items():
+                    if v == access:
+                        mapped_indexes.append(k)
+                        break  
+            gather_op_access[idx].extend(mapped_indexes)
+
+        print('gather_op_access', gather_op_access)
+        # gather_op_access == [[2, 4, 0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 8, 11]]
+
+
 
 
 
