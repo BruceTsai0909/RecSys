@@ -1939,7 +1939,7 @@ if __name__ == "__main__":
     print('offset_global  =', offset_global)
 
 
-    example_mode = True
+    example_mode = False
     if example_mode == True:
         embedding_table_gather_reduce_access = [[0, [2, 4, 0, 2, 4]], [1, [1, 3, 4]], [0, [2, 3, 4, 5]], [1, [1, 2, 4, 2, 5]]]
         offset_global  = [[[0, 2], [0, 1]], [[0, 1], [0, 3]]]
@@ -1951,8 +1951,9 @@ if __name__ == "__main__":
         memory_index = list(range(total_length))
         table_size_list = [size for size in embedding_table_len_global]
 
-
+        embedding_table_gather_reduce_access = [[elem[0], elem[1].tolist()] for elem in embedding_table_gather_reduce_access] # to list
         print("***embedding_table_gather_reduce_access", embedding_table_gather_reduce_access)
+        offset_global = [tensor.tolist() for tensor in offset_global] # to list
         print('***offset_global', offset_global)
         print('table_size_list', table_size_list)
         
@@ -1965,7 +1966,7 @@ if __name__ == "__main__":
         for i in range(len(embedding_table_gather_reduce_access)):
             len_entries.append(len(embedding_table_gather_reduce_access[i][1]))
             for j in embedding_table_gather_reduce_access[i][1]:
-                batched_table_access[i // batch_num].append((embedding_table_gather_reduce_access[i][0], j))
+                batched_table_access[i // len(table_size_list)].append((embedding_table_gather_reduce_access[i][0], j))
         print('batched_table_access', batched_table_access)
         batched_table_access_list = []
         # Modify the format
@@ -2101,7 +2102,7 @@ if __name__ == "__main__":
                     file.write(f"{item}\n")
 
 
-    kkkkk = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
+    temp = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
     # total_memory_index_needed, memory_access_pair = training_trace_simple(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
