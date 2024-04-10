@@ -2120,34 +2120,14 @@ if __name__ == "__main__":
                 mem_trace[idx].append((write_back_to_table[idx][i], 'W'))
         print('mem_trace: ', mem_trace)
 
+        memory_needed = [max(lst) for lst in coalesce_dst_addr]
+        print('memory_needed: ' , memory_needed)
 
         return 0
 
 
-    def training_trace_simple(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global):
 
-        total_length = sum(embedding_table_len_global)
-
-        memory_index = list(range(total_length))
-
-        # print("***", embedding_table_gather_reduce_access)
-        # print("memory_index", memory_index)
-        
-        memory_access_pair = []
-        for i in range(len(embedding_table_gather_reduce_access)):
-            for j in range(len(embedding_table_gather_reduce_access[i][1])):
-                memory_access_pair.append((int(embedding_table_gather_reduce_access[i][1][j]), 'R'))
-            for j in range(len(embedding_table_gather_reduce_access[i][1])):
-                memory_access_pair.append((int(embedding_table_gather_reduce_access[i][1][j]), 'W'))
-            memory_access_pair.append("STOP")
-        
-        print('memory_access_pair', memory_access_pair)
-        total_memory_index_needed = len(memory_index)
-
-        return total_memory_index_needed, memory_access_pair
-
-
-    def memory_mapping_new(memory_index_needed, trace_pair, embedding_table_dimension_global):
+    def memory_mapping(memory_index_needed, trace_pair, embedding_table_dimension_global):
         base_address = 0x10000000  # base
         address_shift_per_embedding_vector = 1 * embedding_table_dimension_global
 
@@ -2188,8 +2168,5 @@ if __name__ == "__main__":
 
     temp = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
-    # total_memory_index_needed, memory_access_pair = training_trace_simple(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
-
-
-    # address_and_action_pair__simple_training = memory_mapping_new(total_memory_index_needed, memory_access_pair, embedding_table_dimension_global)
+    # address_and_action_pair__simple_training = memory_mapping(total_memory_index_needed, memory_access_pair, embedding_table_dimension_global)
     # write_output_to_txt(address_and_action_pair__simple_training, '001')
