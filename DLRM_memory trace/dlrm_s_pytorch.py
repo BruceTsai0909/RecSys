@@ -2139,30 +2139,30 @@ if __name__ == "__main__":
                 index, action = item
                 address = all_address[index]
                 address_and_action_pair[idx].append((address, action))
-            address_and_action_pair[idx].append("STOP")
+            # address_and_action_pair[idx].append("STOP")
         print("address_and_action_pair", address_and_action_pair)
 
         return address_and_action_pair
 
 
-    def write_output_to_txt(output_list, file_name):
+
+    def write_output_to_txt(address_and_action_pair, file_name):
         current_dir = os.getcwd()  
         output_file_path = os.path.join(current_dir, file_name)  
 
         with open(output_file_path, 'w') as file:
-            for item in output_list:
-                if isinstance(item, tuple):  
-                    if item[1].endswith('W'):  # Check if access type ends with 'W'
-                        file.write(f"{item[0]}{item[1]}\n")  # Write without space
+            for sublist in address_and_action_pair:
+                for item in sublist:
+                    if item[1] == 'W':  # Check if access type is 'W'
+                        file.write(f"{item[0]} {item[1]}\n")  # Write with space
                     else:
                         file.write(f"{item[0]} {item[1]}\n")  # Write with space
-                else:  
-                    file.write(f"{item}\n")
-
+                file.write('STOP\n')  # Write STOP after each sublist
 
 
 
     memory_trace, memory_needed = training_trace_standard(embedding_table_gather_reduce_access, embedding_table_len_global, size_of_the_reduced_embedding_vector_global, offset_global)
 
     address_and_action_pair = memory_mapping(memory_trace, memory_needed, embedding_table_dimension_global)
+    
     write_output_to_txt(address_and_action_pair, '001')
