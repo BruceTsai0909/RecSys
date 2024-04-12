@@ -2118,7 +2118,7 @@ if __name__ == "__main__":
                 mem_trace[idx].append((coalesce_grad_ready_to_write_back[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'W'))
-        # print('mem_trace: ', mem_trace)
+        print('standard mem_trace: ', mem_trace)
 
         memory_needed = [max(lst) for lst in coalesce_dst_addr]
         print('memory_needed: ' , memory_needed)
