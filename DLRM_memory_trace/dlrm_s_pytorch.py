@@ -462,7 +462,7 @@ class DLRM_Net(nn.Module):
             else:
                 E = emb_l[k]
                 ###
-                print(f"Embedding Table {k}, Indices: {sparse_index_group_batch}(READ, gather-reduce)")
+                # print(f"Embedding Table {k}, Indices: {sparse_index_group_batch}(READ, gather-reduce)")
                 embedding_table_gather_reduce_access.append([k, sparse_index_group_batch])
                 ###
                 V = E(
@@ -473,7 +473,7 @@ class DLRM_Net(nn.Module):
 
                 ly.append(V)
 
-        print('**ly**', ly) #ly = the result from gather reduce of embedding bag
+        # print('**ly**', ly) #ly = the result from gather reduce of embedding bag
         size_of_the_reduced_embedding_vector_global = sum([t.size(0) for t in ly])
         return ly 
 
@@ -1601,7 +1601,7 @@ def run():
                         device,
                         ndevices=ndevices,
                     )
-                    print('**Z output of forward**', Z)
+                    # print('**Z output of forward**', Z)
                     # bruce:maybe need to hook z gradients? but that is a gradients with dense and sparse feature
                     if ext_dist.my_size > 1:
                         T = T[ext_dist.get_my_slice(mbs)]
@@ -1612,7 +1612,7 @@ def run():
 
                     # compute loss and accuracy
                     L = E.detach().cpu().numpy()  # numpy array
-                    print('L', L)
+                    # print('L', L)
                     # training accuracy is not disabled
                     # S = Z.detach().cpu().numpy()  # numpy array
                     # T = T.detach().cpu().numpy()  # numpy array
@@ -1633,7 +1633,7 @@ def run():
                         ) or not args.mlperf_logging:
                             optimizer.zero_grad()
                         # backward pass
-                        print('**E**', E)
+                        # print('**E**', E)
                         E.backward()
                         
 
@@ -1932,11 +1932,11 @@ def run():
 
 if __name__ == "__main__":
     run()
-    print('Embedding table dimension =', embedding_table_dimension_global)
-    print('Embedding table size =', embedding_table_len_global)
-    print('Number of reduced embedding bags =', size_of_the_reduced_embedding_vector_global)
-    print('embedding_table_gather_reduce_access (Read) =', embedding_table_gather_reduce_access)
-    print('offset_global  =', offset_global)
+    # print('Embedding table dimension =', embedding_table_dimension_global)
+    # print('Embedding table size =', embedding_table_len_global)
+    # print('Number of reduced embedding bags =', size_of_the_reduced_embedding_vector_global)
+    # print('embedding_table_gather_reduce_access (Read) =', embedding_table_gather_reduce_access)
+    # print('offset_global  =', offset_global)
 
 
     example_mode = False
@@ -1952,13 +1952,13 @@ if __name__ == "__main__":
         table_size_list = [size for size in embedding_table_len_global]
 
         embedding_table_gather_reduce_access = [[elem[0], elem[1].tolist()] for elem in embedding_table_gather_reduce_access] # to list
-        print("***embedding_table_gather_reduce_access", embedding_table_gather_reduce_access)
+        # print("***embedding_table_gather_reduce_access", embedding_table_gather_reduce_access)
         offset_global = [tensor.tolist() for tensor in offset_global] # to list
-        print('***offset_global', offset_global)
-        print('table_size_list', table_size_list)
+        # print('***offset_global', offset_global)
+        # print('table_size_list', table_size_list)
         
         batch_num = len(offset_global)
-        print('batch_num', batch_num)
+        # print('batch_num', batch_num)
         batched_table_access = []
         len_entries = []
         for b in range(batch_num):
@@ -1967,25 +1967,25 @@ if __name__ == "__main__":
             len_entries.append(len(embedding_table_gather_reduce_access[i][1]))
             for j in embedding_table_gather_reduce_access[i][1]:
                 batched_table_access[i // len(table_size_list)].append((embedding_table_gather_reduce_access[i][0], j))
-        print('batched_table_access', batched_table_access)
+        # print('batched_table_access', batched_table_access)
         batched_table_access_list = []
         # Modify the format
         for sublist in batched_table_access:
             new_sublist = [[sublist[0]], sublist[1:]]
             batched_table_access_list.append(new_sublist)
 
-        print('batched_table_access_list', batched_table_access_list)
+        # print('batched_table_access_list', batched_table_access_list)
         # batched_table_access_list == [[nth batch], [(kth table, kth entry), (kth table, kth entry), (kth table, kth entry)]]
         # [[[0], [(0, 2), (0, 4), (0, 0), (0, 2), (0, 4), (1, 1), (1, 3), (1, 4)]], [[1], [(2, 2), (2, 3), (2, 4), (2, 5), (3, 1), (3, 2), (3, 4), (3, 2), (3, 5)]]]
         emb_table_pair = []
         emb_table_pair = [(i, j) for i, size in enumerate(table_size_list) for j in range(size)]
-        print(emb_table_pair)
+        # print(emb_table_pair)
         # [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]
         mapped_dict = {idx: pair for idx, pair in enumerate(emb_table_pair)}
-        print(mapped_dict)
+        # print(mapped_dict)
         # mapped_dict == {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3), 4: (0, 4), 5: (0, 5), 6: (1, 0), 7: (1, 1), 8: (1, 2), 9: (1, 3), 10: (1, 4), 11: (1, 5)}
 
-        print(len_entries)
+        # print(len_entries)
         #len_entries == [5, 3, 4, 5]
         # offset_global == [[[0, 2], [0, 1]], [[0, 1], [0, 3]]]
         entoffset = []
@@ -1997,7 +1997,7 @@ if __name__ == "__main__":
                 temp_result.append(temp_entry)
             entoffset.append(temp_result)
         
-        print(entoffset)
+        # print(entoffset)
 
         #entoffset == [[[0, 2, 5], [0, 1, 3]], [[0, 1, 4], [0, 3, 5]]]
         # 5 entries wiht offset 0, 2 ......
@@ -2017,7 +2017,7 @@ if __name__ == "__main__":
                 curr = 1
                     
         # res == [[0, 0, 1, 1, 1, 2, 3, 3], [0, 1, 1, 1, 2, 2, 2, 3, 3]] # which entries belongs to which bag(res) (this example is two iteration)
-        print('entry_to_bag: ', entry_to_bag)
+        # print('entry_to_bag: ', entry_to_bag)
 
         gather_op_access = [[] for _ in range(batch_num)]
         reverse_mapped_dict = {v: k for k, v in mapped_dict.items()}
@@ -2030,10 +2030,10 @@ if __name__ == "__main__":
                         break  
             gather_op_access[idx].extend(mapped_indexes)
 
-        print('gather_op_access: ', gather_op_access)
+        # print('gather_op_access: ', gather_op_access)
         # gather_op_access == [[2, 4, 0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 8, 11]]
         entry_to_bag_extend_to_mem_addr = [[val + len(mapped_dict) for val in sublist] for sublist in entry_to_bag]
-        print('entry_to_bag_extend_to_mem_addr: ', entry_to_bag_extend_to_mem_addr)
+        # print('entry_to_bag_extend_to_mem_addr: ', entry_to_bag_extend_to_mem_addr)
         # entry_to_bag_extend_to_mem_addr == [[12, 12, 13, 13, 13, 14, 15, 15], [12, 13, 13, 13, 14, 14, 14, 15, 15]]
         mem_trace = [[] for _ in range(batch_num)]
         # for inference gather reduce
@@ -2049,7 +2049,7 @@ if __name__ == "__main__":
         # gradients write back
         for i in range(size_of_the_reduced_embedding_vector_global):
             gradients_mem_addr.append(i + len(mapped_dict) + size_of_the_reduced_embedding_vector_global)
-        print('gradients_mem_addr: ', gradients_mem_addr)
+        # print('gradients_mem_addr: ', gradients_mem_addr)
         for trace in mem_trace:
             for grad in gradients_mem_addr:
                 trace.append((grad, 'W'))
@@ -2059,11 +2059,11 @@ if __name__ == "__main__":
         for idx, access in enumerate(gather_op_access):
             for i in range(len(access)):
                 duplicated_grad_addr[idx].append(i + max(gradients_mem_addr) + 1)
-        print('duplicated_grad_addr: ', duplicated_grad_addr) 
+        # print('duplicated_grad_addr: ', duplicated_grad_addr) 
         # duplicated_grad_addr:  [[20, 21, 22, 23, 24, 25, 26, 27], [20, 21, 22, 23, 24, 25, 26, 27, 28]]
 
         grad_to_duplicate_access = [[val + min(gradients_mem_addr) for val in sublist] for sublist in entry_to_bag]
-        print('grad_to_duplicate_access: ', grad_to_duplicate_access)
+        # print('grad_to_duplicate_access: ', grad_to_duplicate_access)
         # grad_to_duplicate_access:  [[16, 16, 17, 17, 17, 18, 19, 19], [16, 17, 17, 17, 18, 18, 18, 19, 19]]
 
         # duplicate gradients operation
@@ -2085,7 +2085,7 @@ if __name__ == "__main__":
             # Remap the values in the list according to the mapping
             remapped_list = [mapping[value] for value in lst]
             coalesce_dst.append(remapped_list)
-        print('coalesce_dst: ', coalesce_dst)
+        # print('coalesce_dst: ', coalesce_dst)
         # coalesce_dst:  [[1, 2, 0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5, 6, 5, 7]]
 
         coalesce_dst_addr = []
@@ -2093,7 +2093,7 @@ if __name__ == "__main__":
             max_addr = max(duplicated_grad_addr[idx])
             coalesce_dst_addr.append([num + max_addr + 1 for num in lst])
         
-        print('coalesce_dst_addr:', coalesce_dst_addr)
+        # print('coalesce_dst_addr:', coalesce_dst_addr)
         # coalesce_dst_addr: [[29, 30, 28, 29, 30, 31, 32, 33], [29, 30, 31, 32, 33, 34, 35, 34, 36]]
         # duplicated_grad_addr:  [[20, 21, 22, 23, 24, 25, 26, 27], [20, 21, 22, 23, 24, 25, 26, 27, 28]]
         
@@ -2106,10 +2106,10 @@ if __name__ == "__main__":
         # print('mem_trace: ', mem_trace)
 
         write_back_to_table = [sorted(set(lst)) for lst in gather_op_access]
-        print('write_back_to_table: ', write_back_to_table)
+        # print('write_back_to_table: ', write_back_to_table)
         # write_back_to_table:  [[0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 11]]
         coalesce_grad_ready_to_write_back = [sorted(set(lst)) for lst in coalesce_dst_addr]
-        print('coalesce_grad_ready_to_write_back: ', coalesce_grad_ready_to_write_back)
+        # print('coalesce_grad_ready_to_write_back: ', coalesce_grad_ready_to_write_back)
         # coalesce_grad_ready_to_write_back:  [[28, 29, 30, 31, 32, 33], [29, 30, 31, 32, 33, 34, 35, 36]]
         
         #update emb table with coalesced gradients
@@ -2118,10 +2118,20 @@ if __name__ == "__main__":
                 mem_trace[idx].append((coalesce_grad_ready_to_write_back[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'W'))
-        print('standard mem_trace: ', mem_trace)
+        # print('standard mem_trace: ', mem_trace)
 
         memory_needed = [max(lst) for lst in coalesce_dst_addr]
-        print('memory_needed: ' , memory_needed)
+        # print('memory_needed: ' , memory_needed)
+
+        add_op_count = []
+
+        for batch in mem_trace:
+            add_count = 0
+            for i in range(len(batch) - 1):
+                if (batch[i][1] == 'R') and (batch[i+1][1] == 'R'):
+                    add_count += 1
+            add_op_count.append(add_count)
+        print('add_op_count_standard: ' , add_op_count)
 
         return mem_trace, memory_needed
 
@@ -2132,13 +2142,13 @@ if __name__ == "__main__":
         table_size_list = [size for size in embedding_table_len_global]
 
         embedding_table_gather_reduce_access = [[elem[0], elem[1].tolist()] for elem in embedding_table_gather_reduce_access] # to list
-        print("***embedding_table_gather_reduce_access", embedding_table_gather_reduce_access)
+        # print("***embedding_table_gather_reduce_access", embedding_table_gather_reduce_access)
         offset_global = [tensor.tolist() for tensor in offset_global] # to list
-        print('***offset_global', offset_global)
-        print('table_size_list', table_size_list)
+        # print('***offset_global', offset_global)
+        # print('table_size_list', table_size_list)
         
         batch_num = len(offset_global)
-        print('batch_num', batch_num)
+        # print('batch_num', batch_num)
         batched_table_access = []
         len_entries = []
         for b in range(batch_num):
@@ -2147,25 +2157,25 @@ if __name__ == "__main__":
             len_entries.append(len(embedding_table_gather_reduce_access[i][1]))
             for j in embedding_table_gather_reduce_access[i][1]:
                 batched_table_access[i // len(table_size_list)].append((embedding_table_gather_reduce_access[i][0], j))
-        print('batched_table_access', batched_table_access)
+        # print('batched_table_access', batched_table_access)
         batched_table_access_list = []
         # Modify the format
         for sublist in batched_table_access:
             new_sublist = [[sublist[0]], sublist[1:]]
             batched_table_access_list.append(new_sublist)
 
-        print('batched_table_access_list', batched_table_access_list)
+        # print('batched_table_access_list', batched_table_access_list)
         # batched_table_access_list == [[nth batch], [(kth table, kth entry), (kth table, kth entry), (kth table, kth entry)]]
         # [[[0], [(0, 2), (0, 4), (0, 0), (0, 2), (0, 4), (1, 1), (1, 3), (1, 4)]], [[1], [(2, 2), (2, 3), (2, 4), (2, 5), (3, 1), (3, 2), (3, 4), (3, 2), (3, 5)]]]
         emb_table_pair = []
         emb_table_pair = [(i, j) for i, size in enumerate(table_size_list) for j in range(size)]
-        print(emb_table_pair)
+        # print(emb_table_pair)
         # [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]
         mapped_dict = {idx: pair for idx, pair in enumerate(emb_table_pair)}
-        print(mapped_dict)
+        # print(mapped_dict)
         # mapped_dict == {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3), 4: (0, 4), 5: (0, 5), 6: (1, 0), 7: (1, 1), 8: (1, 2), 9: (1, 3), 10: (1, 4), 11: (1, 5)}
 
-        print(len_entries)
+        # print(len_entries)
         #len_entries == [5, 3, 4, 5]
         # offset_global == [[[0, 2], [0, 1]], [[0, 1], [0, 3]]]
         entoffset = []
@@ -2177,7 +2187,7 @@ if __name__ == "__main__":
                 temp_result.append(temp_entry)
             entoffset.append(temp_result)
         
-        print(entoffset)
+        # print(entoffset)
 
         #entoffset == [[[0, 2, 5], [0, 1, 3]], [[0, 1, 4], [0, 3, 5]]]
         # 5 entries wiht offset 0, 2 ......
@@ -2197,7 +2207,7 @@ if __name__ == "__main__":
                 curr = 1
                     
         # res == [[0, 0, 1, 1, 1, 2, 3, 3], [0, 1, 1, 1, 2, 2, 2, 3, 3]] # which entries belongs to which bag(res) (this example is two iteration)
-        print('entry_to_bag: ', entry_to_bag)
+        # print('entry_to_bag: ', entry_to_bag)
 
         gather_op_access = [[] for _ in range(batch_num)]
         reverse_mapped_dict = {v: k for k, v in mapped_dict.items()}
@@ -2210,10 +2220,10 @@ if __name__ == "__main__":
                         break  
             gather_op_access[idx].extend(mapped_indexes)
 
-        print('gather_op_access: ', gather_op_access)
+        # print('gather_op_access: ', gather_op_access)
         # gather_op_access == [[2, 4, 0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 8, 11]]
         entry_to_bag_extend_to_mem_addr = [[val + len(mapped_dict) for val in sublist] for sublist in entry_to_bag]
-        print('entry_to_bag_extend_to_mem_addr: ', entry_to_bag_extend_to_mem_addr)
+        # print('entry_to_bag_extend_to_mem_addr: ', entry_to_bag_extend_to_mem_addr)
         # entry_to_bag_extend_to_mem_addr == [[12, 12, 13, 13, 13, 14, 15, 15], [12, 13, 13, 13, 14, 14, 14, 15, 15]]
         mem_trace = [[] for _ in range(batch_num)]
         # for inference gather reduce
@@ -2229,7 +2239,7 @@ if __name__ == "__main__":
         # gradients write back
         for i in range(size_of_the_reduced_embedding_vector_global):
             gradients_mem_addr.append(i + len(mapped_dict) + size_of_the_reduced_embedding_vector_global)
-        print('gradients_mem_addr: ', gradients_mem_addr)
+        # print('gradients_mem_addr: ', gradients_mem_addr)
         # gradients_mem_addr:  [16, 17, 18, 19]
         for trace in mem_trace:
             for grad in gradients_mem_addr:
@@ -2239,7 +2249,7 @@ if __name__ == "__main__":
         
 
         grad_to_duplicate_access = [[val + min(gradients_mem_addr) for val in sublist] for sublist in entry_to_bag]
-        print('grad_to_duplicate_access: ', grad_to_duplicate_access)
+        # print('grad_to_duplicate_access: ', grad_to_duplicate_access)
         # grad_to_duplicate_access:  [[16, 16, 17, 17, 17, 18, 19, 19], [16, 17, 17, 17, 18, 18, 18, 19, 19]]
 
         coalesce_dst = []
@@ -2251,11 +2261,11 @@ if __name__ == "__main__":
             # Remap the values in the list according to the mapping
             remapped_list = [mapping[value] for value in lst]
             coalesce_dst.append(remapped_list)
-        print('coalesce_dst: ', coalesce_dst)
+        # print('coalesce_dst: ', coalesce_dst)
         # coalesce_dst:  [[1, 2, 0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5, 6, 5, 7]]
 
         coalesce_dst_addr = [[val + max(gradients_mem_addr) + 1 for val in sublist] for sublist in coalesce_dst]
-        print('coalesce_dst_addr: ', coalesce_dst_addr)
+        # print('coalesce_dst_addr: ', coalesce_dst_addr)
         # coalesce_dst_addr:  [[21, 22, 20, 21, 22, 23, 24, 25], [20, 21, 22, 23, 24, 25, 26, 25, 27]]
         # grad_to_duplicate_access:  [[16, 16, 17, 17, 17, 18, 19, 19], [16, 17, 17, 17, 18, 18, 18, 19, 19]]
         
@@ -2272,10 +2282,10 @@ if __name__ == "__main__":
         
 
         write_back_to_table = [sorted(set(lst)) for lst in gather_op_access]
-        print('write_back_to_table: ', write_back_to_table)
+        #　print('write_back_to_table: ', write_back_to_table)
         # write_back_to_table:  [[0, 2, 4, 7, 9, 10], [2, 3, 4, 5, 7, 8, 10, 11]]
         coalesce_grad_ready_to_write_back = [sorted(set(lst)) for lst in coalesce_dst_addr]
-        print('coalesce_grad_ready_to_write_back: ', coalesce_grad_ready_to_write_back)
+        # print('coalesce_grad_ready_to_write_back: ', coalesce_grad_ready_to_write_back)
         # coalesce_grad_ready_to_write_back:  [[20, 21, 22, 23, 24, 25], [20, 21, 22, 23, 24, 25, 26, 27]]
         
         #update emb table with coalesced gradients
@@ -2284,10 +2294,19 @@ if __name__ == "__main__":
                 mem_trace[idx].append((coalesce_grad_ready_to_write_back[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'R'))
                 mem_trace[idx].append((write_back_to_table[idx][i], 'W'))
-        print('mem_trace: ', mem_trace)
+        # print('mem_trace: ', mem_trace)
 
         memory_needed = [max(lst) for lst in coalesce_dst_addr]
-        print('memory_needed: ' , memory_needed)
+        # print('memory_needed: ' , memory_needed)
+
+        add_op_count = []
+        for batch in mem_trace:
+            add_count = 0
+            for i in range(len(batch) - 1):
+                if (batch[i][1] == 'R') and (batch[i+1][1] == 'R'):
+                    add_count += 1
+            add_op_count.append(add_count)
+        print('add_op_count_casting: ' , add_op_count)
 
         return mem_trace, memory_needed
 
@@ -2328,7 +2347,7 @@ if __name__ == "__main__":
         for i in range(len(memtrace0)):
             res[0].append(len(memtrace0[i]))
             res[1].append(len(memtrace1[i]))
-        print(res)
+        # print(res)
 
 
 
